@@ -16,3 +16,17 @@
 - MySQL
 - TailwindCSS
 - Chart.js
+
+## Tampilan Aplikasi
+
+### Dashboard
+
+![Dashboard](assets/Dashboard.png)
+
+### Hasil Analisis
+
+![Hasil](assets/Hasil_Analisis.png)
+
+### Riwayat Prediksi
+
+![History](assets/History.png)
