@@ -25,7 +25,7 @@
 
 ### Hasil Analisis
 
-![Hasil](assets/Hasil_Analisis.png)
+![Hasil](assets/Analisis.png)
 
 ### Riwayat Prediksi
 
