@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Prediksi - MeatLab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #D63B2F;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            display: flex; align-items: center; gap: 10px;
+            padding: 22px 20px 18px;
+            color: white; font-size: 18px; font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar-logo i { font-size: 22px; }
+        .sidebar-menu { padding: 14px 0; flex: 1; }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.75);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.15s;
+        }
+        .sidebar-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-item.active {
+            background: white; color: #D63B2F;
+            border-radius: 10px; margin: 0 10px; padding: 12px 14px;
+        }
+        .sidebar-item i { width: 20px; text-align: center; font-size: 16px; }
+        .sidebar-badge {
+            background: #FFB800; color: white;
+            font-size: 10px; font-weight: 700;
+            padding: 1px 7px; border-radius: 20px; margin-left: auto;
+        }
+        .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .sidebar-user { display: flex; align-items: center; gap: 12px; }
+        .sidebar-avatar {
+            width: 40px; height: 40px; background: rgba(255,255,255,0.25);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px;
+        }
+        .sidebar-user-info { color: white; }
+        .sidebar-user-info .name { font-size: 13px; font-weight: 600; }
+        .sidebar-user-info .role { font-size: 11px; opacity: 0.7; }
+
+        /* Main layout */
+        .main-wrapper { margin-left: 220px; flex: 1; display: flex; min-height: 100vh; }
+        .content-area { flex: 1; padding: 28px 24px; min-width: 0; }
+
+        /* Topbar */
+        .topbar { height: 44px; margin-bottom: 24px; }
+
+        /* Page header */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .page-header h2 { font-size: 20px; font-weight: 700; color: #222; }
+        .btn-back {
+            background: white; color: #D63B2F;
+            border: 1.5px solid #D63B2F;
+            border-radius: 10px; padding: 9px 18px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.15s;
+        }
+        .btn-back:hover { background: #D63B2F; color: white; }
+
+        /* Stats row */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: white; border-radius: 16px; padding: 18px 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+        }
+        .stat-card .s-label { font-size: 12px; color: #999; margin-bottom: 8px; }
+        .stat-card .s-val { font-size: 24px; font-weight: 700; color: #222; }
+        .stat-card .s-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; float: right; margin-top: -4px;
+        }
+
+        /* Table */
+        .table-card {
+            background: white; border-radius: 16px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        .table-card-header {
+            padding: 18px 24px; border-bottom: 1px solid #f2f2f2;
+        }
+        .table-card-header h4 { font-size: 15px; font-weight: 700; color: #222; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #fafafa; }
+        thead th {
+            padding: 12px 18px; text-align: left;
+            font-size: 12px; font-weight: 700;
+            color: #999; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
+        tbody tr:hover { background: #fff9f9; }
+        tbody td { padding: 14px 18px; font-size: 13px; color: #333; }
+
+        .badge-fresh { background: #e8f8ed; color: #1a7a3e; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+        .badge-spoiled { background: #fff0f0; color: #c0392b; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+        .btn-pdf {
+            background: #D63B2F; color: white; border: none; border-radius: 8px;
+            padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        /* Right panel */
+        .right-panel { width: 280px; flex-shrink: 0; padding: 28px 20px 28px 0; }
+        .panel-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .panel-topbar h3 { font-size: 16px; font-weight: 700; color: #222; }
+        .panel-avatar { width: 34px; height: 34px; background: #eee; border-radius: 50%; }
+
+        .info-card {
+            background: linear-gradient(135deg, #E8462A 0%, #F47B3B 100%);
+            border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px;
+        }
+        .info-card .i-label { font-size: 12px; opacity: 0.85; margin-bottom: 6px; }
+        .info-card .i-val { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .info-card .i-sub { font-size: 12px; opacity: 0.8; }
+
+        .quick-link {
+            background: white; border-radius: 14px; padding: 14px 16px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            text-decoration: none; color: #333;
+        }
+        .quick-link .ql-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+        .quick-link .ql-text .ql-name { font-size: 13px; font-weight: 600; }
+        .quick-link .ql-text .ql-desc { font-size: 11px; color: #999; margin-top: 2px; }
+        .quick-link .ql-arrow { margin-left: auto; color: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-microscope"></i>
+        <span>Meat<span style="font-weight:400">Lab</span></span>
+    </div>
+    <div class="sidebar-menu">
+        <a href="/" class="sidebar-item">
+            <i class="fas fa-home"></i> Beranda
+        </a>
+        <a href="#" class="sidebar-item">
+            <i class="fas fa-chart-bar"></i> Statistik
+        </a>
+        <a href="/history" class="sidebar-item active">
+            <i class="fas fa-history"></i> Riwayat
+            <span class="sidebar-badge">New</span>
+        </a>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="content-area">
+        <div class="topbar"></div>
+
+        <div class="page-header">
+            <h2>Riwayat Prediksi Daging Sapi</h2>
+            <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali</a>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="s-icon" style="background:#fff0f0;">
+                    <i class="fas fa-list" style="color:#D63B2F;"></i>
+                </div>
+                <div class="s-label">Total Prediksi</div>
+                <div class="s-val">{{ data|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-icon" style="background:#e8f8ed;">
+                    <i class="fas fa-check-circle" style="color:#1a7a3e;"></i>
+                </div>
+                <div class="s-label">Daging Segar</div>
+                <div class="s-val" style="color:#1a7a3e;">
+                    {{ data | selectattr(2, 'equalto', 'fresh') | list | length }}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="s-icon" style="background:#fff3e0;">
+                    <i class="fas fa-exclamation-circle" style="color:#e65100;"></i>
+                </div>
+                <div class="s-label">Tidak Segar</div>
+                <div class="s-val" style="color:#c0392b;">
+                    {{ data | rejectattr(2, 'equalto', 'fresh') | list | length }}
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-card-header">
+                <h4><i class="fas fa-table" style="color:#D63B2F; margin-right:8px;"></i>Data Riwayat</h4>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama File</th>
+                        <th>Prediksi</th>
+                        <th>Confidence</th>
+                        <th>Contrast</th>
+                        <th>Tanggal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td style="color:#999; font-weight:600;">#{{ row[0] }}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:32px;height:32px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;">🥩</div>
+                                <span style="font-weight:500; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{{ row[1] }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if row[2] == "fresh" %}
+                            <span class="badge-fresh">🟢 Segar</span>
+                            {% else %}
+                            <span class="badge-spoiled">🔴 Tidak Segar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="flex:1;background:#f0f0f0;border-radius:20px;height:6px;width:60px;">
+                                    <div style="background:#D63B2F;border-radius:20px;height:6px;width:{{ row[3] }}%;"></div>
+                                </div>
+                                <span style="font-weight:600;color:#D63B2F;">{{ row[3] }}%</span>
+                            </div>
+                        </td>
+                        <td style="color:#666;">{{ row[4] }}</td>
+                        <td style="color:#999; font-size:12px;">{{ row[8] }}</td>
+                        <td>
+                            <a href="/export_pdf/{{ row[0] }}" class="btn-pdf">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>

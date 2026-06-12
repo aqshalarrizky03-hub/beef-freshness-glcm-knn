@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deteksi Kesegaran Daging</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #D63B2F;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 20px 18px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar-logo i { font-size: 22px; }
+        .sidebar-menu { padding: 14px 0; flex: 1; }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.75);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .sidebar-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-item.active {
+            background: white;
+            color: #D63B2F;
+            border-radius: 10px;
+            margin: 0 10px;
+            padding: 12px 14px;
+        }
+        .sidebar-item i { width: 20px; text-align: center; font-size: 16px; }
+        .sidebar-badge {
+            background: #FFB800;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 20px;
+            margin-left: auto;
+        }
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+        }
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-avatar {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px;
+        }
+        .sidebar-user-info { color: white; }
+        .sidebar-user-info .name { font-size: 13px; font-weight: 600; }
+        .sidebar-user-info .role { font-size: 11px; opacity: 0.7; }
+        .sidebar-user-btn {
+            margin-top: 10px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.15s;
+        }
+        .sidebar-user-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* Main layout */
+        .main-wrapper {
+            margin-left: 220px;
+            flex: 1;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Center content */
+        .content-area {
+            flex: 1;
+            padding: 28px 24px;
+            min-width: 0;
+        }
+
+        /* Top search bar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 12px;
+            padding: 0 16px;
+            height: 44px;
+            gap: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        .search-box i { color: #aaa; font-size: 15px; }
+        .search-box input {
+            border: none; outline: none;
+            font-size: 14px; color: #555;
+            width: 100%; background: transparent;
+        }
+        .search-btn {
+            width: 44px; height: 44px;
+            background: #D63B2F;
+            border-radius: 12px;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .search-btn i { color: white; font-size: 16px; }
+
+        /* Hero banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #E8462A 0%, #F47B3B 100%);
+            border-radius: 18px;
+            padding: 28px 32px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            right: 80px; top: -20px;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+        .hero-icon {
+            width: 80px; height: 80px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px;
+            color: white;
+            flex-shrink: 0;
+        }
+        .hero-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .hero-banner p { font-size: 13px; opacity: 0.85; margin-bottom: 14px; line-height: 1.5; }
+        .hero-btn {
+            background: white;
+            color: #D63B2F;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Section title */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-header h3 { font-size: 16px; font-weight: 700; color: #222; }
+        .section-header a { font-size: 13px; color: #D63B2F; text-decoration: none; font-weight: 500; }
+
+        /* Upload card */
+        .upload-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+            margin-bottom: 24px;
+        }
+        .upload-area {
+            border: 2px dashed #e0e0e0;
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s;
+            background: #fafafa;
+        }
+        .upload-area:hover { border-color: #D63B2F; }
+        .upload-area i { font-size: 36px; color: #D63B2F; margin-bottom: 10px; }
+        .upload-area p { font-size: 14px; color: #777; }
+        .upload-area input[type="file"] {
+            position: absolute; opacity: 0; width: 1px; height: 1px;
+        }
+        .upload-label {
+            display: block;
+            font-size: 13px; font-weight: 600;
+            color: #333; margin-bottom: 6px;
+        }
+        .file-input-row {
+            display: flex; gap: 12px; align-items: center;
+            margin-top: 16px;
+        }
+        .file-input-row input[type="file"] {
+            flex: 1;
+            border: 1.5px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 9px 14px;
+            font-size: 13px;
+            background: #fafafa;
+            outline: none;
+        }
+        .btn-primary {
+            background: #D63B2F;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .btn-primary:hover { background: #bc3228; }
+
+        /* Result section */
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .result-image-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+        }
+        .result-image-card img {
+            width: 100%; height: 220px;
+            object-fit: cover;
+        }
+        .result-image-card .img-label {
+            padding: 12px 16px;
+            font-size: 13px; font-weight: 600; color: #444;
+        }
+        .result-info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+        }
+        .result-info-card h4 { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 14px; }
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .feature-item:last-child { border-bottom: none; }
+        .feature-item .label { color: #777; }
+        .feature-item .value { font-weight: 600; color: #333; }
+
+        /* Status badge */
+        .status-fresh {
+            background: #e8f8ed;
+            color: #1a7a3e;
+            border: 1.5px solid #a3dbb5;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 14px;
+        }
+        .status-spoiled {
+            background: #fff0f0;
+            color: #c0392b;
+            border: 1.5px solid #f5b7b1;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 14px;
+        }
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        .confidence-row .conf-label { font-size: 13px; color: #777; }
+        .confidence-row .conf-val { font-size: 20px; font-weight: 700; color: #D63B2F; }
+
+        /* Chart card */
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+            margin-bottom: 24px;
+        }
+        .chart-card h4 { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 18px; }
+
+        /* Right panel */
+        .right-panel {
+            width: 300px;
+            flex-shrink: 0;
+            padding: 28px 20px 28px 0;
+        }
+        .panel-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .panel-topbar h3 { font-size: 16px; font-weight: 700; color: #222; }
+        .panel-topbar .menu-icon {
+            width: 34px; height: 34px;
+            background: white;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            cursor: pointer;
+        }
+        .panel-avatar {
+            width: 34px; height: 34px;
+            background: #eee;
+            border-radius: 50%;
+        }
+
+        /* Saldo card */
+        .saldo-card {
+            background: linear-gradient(135deg, #E8462A 0%, #F47B3B 100%);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .saldo-card .saldo-label {
+            font-size: 12px; opacity: 0.85; margin-bottom: 6px;
+        }
+        .saldo-card .saldo-val {
+            font-size: 26px; font-weight: 700; margin-bottom: 16px;
+        }
+        .saldo-actions { display: flex; gap: 10px; }
+        .saldo-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: background 0.15s;
+        }
+        .saldo-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* Tagihan panel */
+        .tagihan-section { margin-top: 6px; }
+        .tagihan-section h4 { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 14px; }
+        .tagihan-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .tagihan-img {
+            width: 46px; height: 46px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .tagihan-info { flex: 1; min-width: 0; }
+        .tagihan-info .t-name { font-size: 13px; font-weight: 600; color: #222; }
+        .tagihan-note {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #fff3e0;
+            color: #e65100;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-top: 3px;
+        }
+        .tagihan-ctrl {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .qty-btn {
+            width: 24px; height: 24px;
+            background: #D63B2F;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .qty-val { font-size: 13px; font-weight: 600; color: #333; min-width: 16px; text-align: center; }
+
+        /* Summary totals */
+        .summary-row {
+            display: flex; justify-content: space-between;
+            font-size: 13px; padding: 5px 0; color: #666;
+        }
+        .summary-row.total {
+            font-size: 15px; font-weight: 700; color: #222;
+            padding-top: 10px; border-top: 1.5px solid #eee;
+        }
+        .btn-cetak {
+            width: 100%;
+            background: #D63B2F;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.15s;
+        }
+        .btn-cetak:hover { background: #bc3228; }
+
+        /* Recent detections */
+        .recent-card {
+            background: white;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .recent-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .recent-icon.fresh { background: #e8f8ed; }
+        .recent-icon.spoiled { background: #fff0f0; }
+        .recent-info { flex: 1; min-width: 0; }
+        .recent-info .r-name { font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .recent-info .r-conf { font-size: 11px; color: #999; margin-top: 2px; }
+        .recent-badge-fresh {
+            background: #e8f8ed; color: #1a7a3e;
+            font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .recent-badge-spoiled {
+            background: #fff0f0; color: #c0392b;
+            font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-logo">
+        <i class="fas fa-microscope"></i>
+        <span>Meat<span style="font-weight:400">Lab</span></span>
+    </div>
+    <div class="sidebar-menu">
+        <a href="/" class="sidebar-item active">
+            <i class="fas fa-home"></i> Beranda
+        </a>
+        <a href="#" class="sidebar-item">
+            <i class="fas fa-chart-bar"></i> Statistik
+        </a>
+        <a href="/history" class="sidebar-item">
+            <i class="fas fa-history"></i> Riwayat
+            <span class="sidebar-badge">New</span>
+        </a>
+    </div>
+</div>
+
+<!-- Main -->
+<div class="main-wrapper">
+    <!-- Center content -->
+    <div class="content-area">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Cari sesuatu...">
+            </div>
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero-banner">
+            <div>
+                <h2>Deteksi Daging Sapi</h2>
+                <p>Analisis kesegaran daging menggunakan<br>metode GLCM + KNN Classification</p>
+                <button class="hero-btn">Pelajari Lebih Lanjut</button>
+            </div>
+            <div class="hero-icon">
+                <i class="fas fa-drumstick-bite"></i>
+            </div>
+        </div>
+
+        <!-- Upload section -->
+        <div class="section-header">
+            <h3>Unggah Gambar Daging</h3>
+        </div>
+        <div class="upload-card">
+            <form method="POST" enctype="multipart/form-data">
+                <div style="text-align:center; padding: 10px 0 20px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:40px; color:#D63B2F; margin-bottom:10px; display:block;"></i>
+                    <p style="font-size:14px; color:#777; margin-bottom:4px;">Pilih atau seret gambar daging sapi di sini</p>
+                    <p style="font-size:12px; color:#aaa;">Format: JPG, PNG, JPEG</p>
+                </div>
+                <div class="file-input-row">
+                    <input type="file" name="image" required accept="image/*">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-search" style="margin-right:8px;"></i>Analisis
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if image_path %}
+        <!-- Result -->
+        <div class="section-header">
+            <h3>Hasil Analisis</h3>
+        </div>
+        <div class="result-grid">
+            <div class="result-image-card">
+                <img src="{{ image_path }}" alt="Gambar daging">
+                <div class="img-label"><i class="fas fa-image" style="color:#D63B2F; margin-right:6px;"></i>Gambar yang dianalisis</div>
+            </div>
+            <div class="result-info-card">
+                <h4>Fitur GLCM</h4>
+                <div class="feature-item">
+                    <span class="label">Contrast</span>
+                    <span class="value">{{ features.contrast }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="label">Correlation</span>
+                    <span class="value">{{ features.correlation }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="label">Energy</span>
+                    <span class="value">{{ features.energy }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="label">Homogeneity</span>
+                    <span class="value">{{ features.homogeneity }}</span>
+                </div>
+
+                {% if result == "fresh" %}
+                <div class="status-fresh">🟢 DAGING SEGAR</div>
+                {% else %}
+                <div class="status-spoiled">🔴 DAGING TIDAK SEGAR</div>
+                {% endif %}
+
+                <div class="confidence-row">
+                    <span class="conf-label">Tingkat Kepercayaan</span>
+                    <span class="conf-val">{{ confidence }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card">
+            <h4><i class="fas fa-chart-bar" style="color:#D63B2F; margin-right:8px;"></i>Grafik Fitur GLCM</h4>
+            <div style="height: 280px;">
+                <canvas id="glcmChart"></canvas>
+            </div>
+        </div>
+
+        <script>
+            const ctx = document.getElementById('glcmChart').getContext('2d');
+            new Chart(ctx, {
+                plugins: [ChartDataLabels],
+                type: 'bar',
+                data: {
+                    labels: ['Contrast', 'Correlation', 'Energy', 'Homogeneity'],
+                    datasets: [{
+                        label: 'Nilai Fitur GLCM',
+                        data: [{{ features_chart.contrast }}, {{ features_chart.correlation }}, {{ features_chart.energy }}, {{ features_chart.homogeneity }}],
+                        backgroundColor: ['#D63B2F','#F47B3B','#FFB800','#2ecc71'],
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end', align: 'top',
+                            font: { weight: 'bold', size: 11 },
+                            color: '#555'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { font: { size: 12 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        </script>
+        {% endif %}
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <div class="panel-topbar">
+            <div class="menu-icon"><i class="fas fa-bars" style="font-size:15px; color:#555;"></i></div>
+            <h3>Detail</h3>
+            <div class="panel-avatar"></div>
+        </div>
+
+        <!-- Saldo -->
+        <div class="saldo-card">
+            <div class="saldo-label">Status Sistem</div>
+            <div class="saldo-val">KNN Ready</div>
+            <div class="saldo-actions">
+                <button class="saldo-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <button class="saldo-btn"><i class="fas fa-database"></i> Dataset</button>
+            </div>
+        </div>
+
+        <!-- Tagihan / Recent -->
+        <div class="tagihan-section">
+            {% if image_path %}
+            <div class="tagihan-item">
+                <div class="tagihan-img {% if result == 'fresh' %}fresh{% else %}spoiled{% endif %}">
+                    {% if result == "fresh" %}🥩{% else %}⚠️{% endif %}
+                </div>
+                <div class="tagihan-info">
+                    <div class="t-name">Gambar terbaru</div>
+                    <div class="tagihan-note"><i class="fas fa-pencil-alt"></i> Conf: {{ confidence }}%</div>
+                </div>
+                <div class="tagihan-ctrl">
+                    {% if result == "fresh" %}
+                    <span class="recent-badge-fresh">Segar</span>
+                    {% else %}
+                    <span class="recent-badge-spoiled">Busuk</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            {% endif %}
+        </div>
+
+        {% if image_path %}
+        <div style="margin-top: 20px;">
+            <div class="summary-row"><span>Contrast</span><span>{{ features.contrast }}</span></div>
+            <div class="summary-row"><span>Correlation</span><span>{{ features.correlation }}</span></div>
+            <div class="summary-row"><span>Energy</span><span>{{ features.energy }}</span></div>
+            <div class="summary-row total"><span>Confidence</span><span style="color:#D63B2F;">{{ confidence }}%</span></div>
+        </div>
+        <a href="/history">
+            <button class="btn-cetak"><i class="fas fa-history" style="margin-right:8px;"></i>Lihat Riwayat</button>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>
